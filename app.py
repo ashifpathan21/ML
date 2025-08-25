@@ -3,7 +3,12 @@ from flask import Flask, request, jsonify
 import tempfile
 import os
 import sys
-from pathlib import Path
+import traceback
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -35,7 +40,9 @@ def analyze_apk():
         result = generate_report(tmp_path)
         return jsonify(result)
     except Exception as e:
-        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+        logger.error(f"Error during APK analysis: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to analyse APK', 'details': str(e)}), 500
     finally:
         # Clean up temporary file
         try:
@@ -45,7 +52,18 @@ def analyze_apk():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'healthy'})
+    try:
+        from apk_checker import load_model
+        model = load_model()
+        return jsonify({
+            'status': 'healthy', 
+            'model_loaded': model is not None
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error', 
+            'details': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
