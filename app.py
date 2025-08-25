@@ -1,6 +1,5 @@
 # app.py
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 import tempfile
 import os
 import sys
@@ -10,7 +9,6 @@ from pathlib import Path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 app = Flask(__name__)
-CORS(app)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 
 @app.route('/analyze', methods=['POST'])
@@ -47,7 +45,7 @@ def analyze_apk():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'healthy', 'model_loaded': model is not None})
+    return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
